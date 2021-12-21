@@ -26,6 +26,7 @@ Add a $ at the beginning to show a preview before doing the actual renaming
 ## Replace
 
 ![plot](./media/demo_replace.gif)
+
 Select one or more files and ctrl+shift+p and search for "power replace"
 
 Then enter the string you want to search for.
@@ -34,4 +35,3 @@ Then enter the string you want to replace that with
 
 Add a $ at the beginning to show a preview before doing the actual replacing.
 
-## Replace
