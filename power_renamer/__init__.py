@@ -14,7 +14,7 @@ class PowerRename(DirectoryPaneCommand):
 			show_alert("Please select at least 1 file.")
 			return
 
-		basefilename, ok = show_prompt('Please enter the bease name like "filename_####"')
+		basefilename, ok = show_prompt('Please enter the base name like "filename_####"')
 		if not basefilename and not ok:
 			return
 		
@@ -47,11 +47,48 @@ class PowerRename(DirectoryPaneCommand):
 		if choice == ABORT:
 			return
 
-		iteateFiles(paths, baseFilename, digitLength, url, True)
+		iteateFilesForRename(paths, baseFilename, digitLength, url, True)
+		self.pane.clear_selection() 
+			
+class PowerReplace(DirectoryPaneCommand):
+	def __call__(self):		
+		url = self.pane.get_path() 
+		paths = self.pane.get_selected_files()
+
+		if len(paths) < 1:
+			show_alert("Please select at least 1 file.")
+			return
+		
+		name = os.path.basename(paths[0])	
+		name, ext = os.path.splitext(name)
+		replaceString, ok = show_prompt('Please enter the string you want to replace', name)
+		if not replaceString and not ok:
+			return
+
+		newString, ok = show_prompt('Please enter the new string you want replace ' + replaceString + ' with')
+		if not newString and not ok:
+			return			
+
+		for path in paths:	
+			name, ext = os.path.splitext(path)
+			name = os.path.basename(path)	
+			
+			# name contians replaceString
+			if(name.find(replaceString) > -1):
+				newName = name.replace(replaceString, newString)
+				#show_alert("New name: " + newName)
+				newPath = url + "/" + newName
+				if exists(newPath):				
+					continue		
+
+				move(path, newPath)
+
+
+
 		self.pane.clear_selection() 
 			
 
-def iteateFiles(paths, baseFilename, digitLength, url, rename):	
+def iteateFilesForRename(paths, baseFilename, digitLength, url, rename):	
 	preview = ''
 	index = 1
 	for path in paths:	
