@@ -1,4 +1,4 @@
-# fman duplicate file and increment index extension
+# fman rename files extension
 rename the currently selected files from [FMan](https://www.fman.io)
 
 # Install
