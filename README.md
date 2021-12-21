@@ -25,7 +25,7 @@ Add a $ at the beginning to show a preview before doing the actual renaming
 
 ## Replace
 
-![plot](./media/demo_replace.gif)
+![plot](./media/demo_replace_02.gif)
 
 Select one or more files and ctrl+shift+p and search for "power replace"
 
