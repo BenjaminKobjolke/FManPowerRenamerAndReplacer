@@ -29,6 +29,9 @@ class PowerRename(DirectoryPaneCommand):
 		maxNumber = pow(10, digitLength)
 		#show_alert('Max number is ' + str(maxNumber))
 
+		showPreview = shouldShowPreview(basefilename)
+		if(showPreview):			
+			basefilename = basefilename[1:]			
 
 		name_split = basefilename.split("#")
 		baseFilename = name_split[0]
@@ -38,14 +41,15 @@ class PowerRename(DirectoryPaneCommand):
 			return
 
 		#show_alert('You entered ' + str(count) + ' #')
-		preview = iteateFiles(paths, baseFilename, digitLength, url, False)
+		if(showPreview):
+			preview = iteateFilesForRename(paths, baseFilename, digitLength, url, False)
 		
-		choice = show_alert(
-			preview,
-			buttons=YES | ABORT,
-			)
-		if choice == ABORT:
-			return
+			choice = show_alert(
+				preview,
+				buttons=YES | ABORT,
+				)
+			if choice == ABORT:
+				return
 
 		iteateFilesForRename(paths, baseFilename, digitLength, url, True)
 		self.pane.clear_selection() 
@@ -69,24 +73,51 @@ class PowerReplace(DirectoryPaneCommand):
 		if not newString and not ok:
 			return			
 
-		for path in paths:	
-			name, ext = os.path.splitext(path)
-			name = os.path.basename(path)	
-			
-			# name contians replaceString
-			if(name.find(replaceString) > -1):
-				newName = name.replace(replaceString, newString)
-				#show_alert("New name: " + newName)
-				newPath = url + "/" + newName
-				if exists(newPath):				
-					continue		
+		showPreview = shouldShowPreview(replaceString)
+		if(showPreview):			
+			replaceString = replaceString[1:]			
 
-				move(path, newPath)
+		if(showPreview):
+			preview = iteateFilesForReplace(paths, replaceString, newString, url, False)
+		
+			choice = show_alert(
+				preview,
+				buttons=YES | ABORT,
+				)
+			if choice == ABORT:
+				return
 
-
+		iteateFilesForReplace(paths, replaceString, newString, url, True)	
 
 		self.pane.clear_selection() 
 			
+
+def shouldShowPreview(basefilename):
+	if(basefilename[0] == '$'):
+		return True
+	return False
+
+
+def iteateFilesForReplace(paths, replaceString, newString, url, replace):	
+	preview = ''
+	for path in paths:	
+		name, ext = os.path.splitext(path)
+		name = os.path.basename(path)	
+
+		if(name.find(replaceString) > -1):
+			newFilename = name.replace(replaceString, newString)
+			
+			newPath = url + "/" + newFilename
+			preview += name  + ' > ' + newFilename + '\n'
+			if exists(newPath):
+				preview += "File already exists, will be skipped.\n"
+				continue	
+			
+			if(replace):
+				move(path, newPath)
+
+	return preview
+
 
 def iteateFilesForRename(paths, baseFilename, digitLength, url, rename):	
 	preview = ''
