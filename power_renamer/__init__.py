@@ -11,8 +11,16 @@ class PowerRename(DirectoryPaneCommand):
 		paths = self.pane.get_selected_files()
 
 		if len(paths) < 1:
-			show_alert("Please select at least 1 file.")
-			return
+			choice = show_alert(
+				'No files selected.\nDo you want to rename all files in this folder?',
+				buttons=YES | ABORT,
+				default_button=YES
+			)
+			if choice == ABORT:
+				return
+
+			self.pane.select_all()
+			paths = self.pane.get_selected_files()
 
 		basefilename, ok = show_prompt('Please enter the base name like "filename_####"')
 		if not basefilename and not ok:
