@@ -27,6 +27,13 @@ class PowerRename(DirectoryPaneCommand):
 			return
 		
 
+		# Check if user provided an extension
+		userExt = None
+		if '.' in basefilename:
+			# Extract the extension from the base filename
+			basePart, userExt = os.path.splitext(basefilename)
+			basefilename = basePart  # Update basefilename without extension
+
 		# how many times does text contain #
 		digitLength = basefilename.count('#')
 		if(digitLength < 1):
@@ -44,13 +51,27 @@ class PowerRename(DirectoryPaneCommand):
 		name_split = basefilename.split("#")
 		baseFilename = name_split[0]
 
+		# If user provided an extension, check if we need to ask for confirmation
+		# by comparing with the first file's extension
+		changeExtension = True  # Default to True if user provided an extension
+		if userExt is not None and len(paths) > 0:
+			_, firstExt = os.path.splitext(paths[0])
+			if userExt.lower() != firstExt.lower():
+				# Extensions are different, ask for confirmation once for all files
+				choice = show_alert(
+					f'You are trying to change the extension from {firstExt} to {userExt}.\nDo you want to proceed for all files?',
+					buttons=YES | NO,
+					default_button=NO
+				)
+				if choice == NO:
+					changeExtension = False  # Don't change extensions
+
 		if(len(paths) > maxNumber):
 			show_alert('You added ' + str(digitLength) + ' #s. With that you can rename ' + str(maxNumber) + ' files. But you selected ' + str(len(paths)) + ' files.')
 			return
 
-		#show_alert('You entered ' + str(count) + ' #')
 		if(showPreview):
-			preview = iteateFilesForRename(paths, baseFilename, digitLength, url, False)
+			preview = iteateFilesForRename(paths, baseFilename, digitLength, url, False, userExt, changeExtension)
 		
 			choice = show_alert(
 				preview,
@@ -59,7 +80,7 @@ class PowerRename(DirectoryPaneCommand):
 			if choice == ABORT:
 				return
 
-		iteateFilesForRename(paths, baseFilename, digitLength, url, True)
+		iteateFilesForRename(paths, baseFilename, digitLength, url, True, userExt, changeExtension)
 		self.pane.clear_selection() 
 			
 class PowerReplace(DirectoryPaneCommand):
@@ -127,7 +148,7 @@ def iteateFilesForReplace(paths, replaceString, newString, url, replace):
 	return preview
 
 
-def iteateFilesForRename(paths, baseFilename, digitLength, url, rename):	
+def iteateFilesForRename(paths, baseFilename, digitLength, url, rename, userExt=None, changeExtension=True):	
 	preview = ''
 	index = 1
 	for path in paths:	
@@ -135,7 +156,20 @@ def iteateFilesForRename(paths, baseFilename, digitLength, url, rename):
 		name = os.path.basename(path)	
 		
 		indexString = str(index)
-		newFilename = baseFilename + indexString.zfill(digitLength) + ext		
+		
+		# Use user-provided extension if available, otherwise use original
+		finalExt = ext
+		if userExt is not None:
+			if userExt.lower() != ext.lower():
+				# Extensions are different
+				if changeExtension:
+					finalExt = userExt  # Use new extension
+				# else keep original extension (finalExt = ext)
+			else:
+				# Extensions match (ignoring case), use the user-provided one
+				finalExt = userExt
+		
+		newFilename = baseFilename + indexString.zfill(digitLength) + finalExt		
 		newPath = url + "/" + newFilename
 
 		preview += name  + ' > ' + newFilename + '\n'
@@ -150,4 +184,3 @@ def iteateFilesForRename(paths, baseFilename, digitLength, url, rename):
 		index += 1
 
 	return preview
-
